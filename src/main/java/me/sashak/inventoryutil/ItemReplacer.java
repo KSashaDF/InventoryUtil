@@ -7,8 +7,8 @@ import org.bukkit.inventory.ItemStack;
 
 public class ItemReplacer {
 	
-	public static void replaceItems(InventoryFilter filter, InventoryHolder inventoryHolder, ItemStack replacementItem, int maxOperations) {
-		replaceItems(filter, inventoryHolder.getInventory(), replacementItem, maxOperations);
+	public static void replaceItems(InventoryFilter filter, InventoryHolder holder, ItemStack replacementItem, int maxOperations) {
+		replaceItems(filter, holder.getInventory(), replacementItem, maxOperations);
 	}
 	
 	/**
@@ -19,19 +19,19 @@ public class ItemReplacer {
 	 * operation size of 2, 2 operations 1 left over).
 	 *
 	 * @param filter Replaces all items matching this filter
-	 * @param inventory The inventory
+	 * @param inv The inventory
 	 * @param replacementItem The item to replace with
 	 * @param maxOperations The maximum amount of replacement operations that can be done
 	 */
-	public static void replaceItems(InventoryFilter filter, Inventory inventory, ItemStack replacementItem, int maxOperations) {
+	public static void replaceItems(InventoryFilter filter, Inventory inv, ItemStack replacementItem, int maxOperations) {
 		int extraItemAmount = 0;
 		int totalReplaceOperations = 0;
 		
 		for (ItemStack filterItem : filter.getFilterItems()) {
-			int[] replacementSlots = ItemManipulator.getMatchingSlots(filterItem, filter, inventory);
+			int[] replacementSlots = ItemUtil.getMatchingSlots(filterItem, filter, inv);
 			
 			for (int replacementSlot : replacementSlots) {
-				ItemStack item = inventory.getItem(replacementSlot);
+				ItemStack item = inv.getItem(replacementSlot);
 				if (item == null) continue;
 				
 				// Finds the amount of replacement operations that should be done to this item.
@@ -63,7 +63,7 @@ public class ItemReplacer {
 					// Replace this inventory slot with the replaced items, if all items in this slot have been replaced.
 					ItemStack newReplacementItem = replacementItem.clone();
 					newReplacementItem.setAmount(replaceAmount);
-					inventory.setItem(replacementSlot, newReplacementItem);
+					inv.setItem(replacementSlot, newReplacementItem);
 				}
 			}
 		}
@@ -81,7 +81,7 @@ public class ItemReplacer {
 		
 		ItemStack[] filterItems = filter.getFilterItems(); // Avoid cloning the filter.
 		filter.setFilterItems();
-		ItemGiver.giveItems(filter, inventory, extraItems); // Give the extra items.
+		ItemGiver.giveItems(filter, inv, extraItems); // Give the extra items.
 		filter.setFilterItems(filterItems);
 	}
 }

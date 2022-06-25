@@ -21,7 +21,7 @@ sourceSets {
     }
 }
 
-val examplesImplementation by configurations.getting {
+val examplesImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
 

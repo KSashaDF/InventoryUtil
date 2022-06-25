@@ -1,18 +1,24 @@
 package me.sashak.inventoryutil.filter;
 
-import me.sashak.inventoryutil.filter.item.ItemFilter;
-import me.sashak.inventoryutil.filter.item.ItemFilterType;
-import me.sashak.inventoryutil.filter.slot.SlotFilter;
-import me.sashak.inventoryutil.filter.slot.SlotFilterType;
+import me.sashak.inventoryutil.filter.item.*;
+import me.sashak.inventoryutil.filter.slot.*;
 import org.bukkit.inventory.ItemStack;
 
 public class InventoryFilter {
 	
-	private ItemFilter itemFilter = new ItemFilter(ItemFilterType.ALLOW_ALL);
-	private ItemStack[] filterItems = new ItemStack[0];
-	private SlotFilter slotFilter = new SlotFilter(SlotFilterType.MAIN_INVENTORY);
+	private ItemFilter itemFilter;
+	private ItemStack[] filterItems;
+	private SlotGroup slotGroup;
 	
-	// SETTERS
+	public InventoryFilter() {
+		this(SlotGroups.PLAYER_MAIN_INV);
+	}
+	
+	public InventoryFilter(SlotGroup slotGroup) {
+		itemFilter = new ItemFilter(ItemFilterType.ALLOW_ALL);
+		filterItems = new ItemStack[0];
+		this.slotGroup = slotGroup;
+	}
 	
 	public InventoryFilter setItemFilter(ItemFilter itemFilter) {
 		this.itemFilter = itemFilter;
@@ -33,14 +39,6 @@ public class InventoryFilter {
 		return this;
 	}
 	
-	public InventoryFilter setSlotGroup(SlotFilter slotFilter) {
-		this.slotFilter = slotFilter;
-		
-		return this;
-	}
-	
-	// GETTERS
-	
 	public ItemFilter getItemFilter() {
 		return itemFilter;
 	}
@@ -49,7 +47,13 @@ public class InventoryFilter {
 		return filterItems;
 	}
 	
-	public SlotFilter getSlotGroup() {
-		return slotFilter;
+	public InventoryFilter setSlotGroup(SlotGroup slotGroup) {
+		this.slotGroup = slotGroup;
+		
+		return this;
+	}
+	
+	public SlotGroup getSlotGroup() {
+		return slotGroup;
 	}
 }
