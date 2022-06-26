@@ -105,73 +105,72 @@ public class ItemUtil {
 		return a != null && a.equals(b);
 	}
 	
-	//<editor-fold desc="> combineSimilarStacks methods" defaultstate="collapsed">
+	//<editor-fold desc="> combineSimilarItems methods" defaultstate="collapsed">
 	/**
-	 * @see #combineSimilarStacks(List, boolean)
+	 * @see #combineSimilarItems(List, boolean)
 	 */
-	public static ItemStack[] combineSimilarStacks(ItemStack[] items) {
-		return combineSimilarStacks(items, true);
+	public static ItemStack[] combineSimilarItems(ItemStack[] items) {
+		return combineSimilarItems(items, true);
 	}
 	
 	/**
-	 * @see #combineSimilarStacks(List, boolean)
+	 * @see #combineSimilarItems(List, boolean)
 	 */
-	public static ArrayList<ItemStack> combineSimilarStacks(List<ItemStack> items) {
-		return combineSimilarStacks(items, true);
+	public static ArrayList<ItemStack> combineSimilarItems(List<ItemStack> items) {
+		return combineSimilarItems(items, true);
 	}
 	
 	/**
-	 * @see #combineSimilarStacks(List, boolean)
+	 * @see #combineSimilarItems(List, boolean)
 	 */
-	public static ItemStack[] combineSimilarStacks(ItemStack[] items, boolean respectMaxStackSize) {
-		return combineSimilarStacks(items, respectMaxStackSize, true).toArray(new ItemStack[0]);
+	public static ItemStack[] combineSimilarItems(ItemStack[] items, boolean respectMaxStackSize) {
+		return combineSimilarItems(items, respectMaxStackSize, true).toArray(new ItemStack[0]);
 	}
 	
 	/**
 	 * Consolidates all items into as few stacks as possible. This method will clone all items.
 	 * Empty items are ignored.
 	 *
-	 * @param respectMaxStackSize if false, all similar items will be combined into a single
-	 *                            stack, potentially resulting in stack sizes that far exceed
-	 *                            the max stack sizes of items
+	 * @param respectMaxStackSize if false, all similar items will be combined, potentially
+	 *                            resulting in stack sizes that far exceed the max stack sizes
+	 *                            of items
 	 * @return a consolidated list of items
 	 */
-	public static ArrayList<ItemStack> combineSimilarStacks(List<ItemStack> items, boolean respectMaxStackSize) {
-		return combineSimilarStacks(items.toArray(new ItemStack[0]), respectMaxStackSize, true);
+	public static ArrayList<ItemStack> combineSimilarItems(List<ItemStack> items, boolean respectMaxStackSize) {
+		return combineSimilarItems(items.toArray(new ItemStack[0]), respectMaxStackSize, true);
 	}
 	
 	/**
-	 * @see #combineSimilarStacksNoClone(List)
+	 * @see #combineSimilarItemsNoClone(List)
 	 */
-	public static ItemStack[] combineSimilarStacksNoClone(ItemStack[] items) {
-		return combineSimilarStacks(items, false, false).toArray(new ItemStack[0]);
+	public static ItemStack[] combineSimilarItemsNoClone(ItemStack[] items) {
+		return combineSimilarItems(items, false, false).toArray(new ItemStack[0]);
 	}
 	
 	/**
 	 * Consolidates all items into as few stacks as possible. This method does not respect max
-	 * stack sizes, meaning that all similar items will be combined into a single stack. This will
-	 * potentially result in stack sizes that far exceed the max stack sizes of items. Empty items
-	 * are ignored.
+	 * stack sizes, meaning that all similar items will be combined. This will potentially result
+	 * in stack sizes that far exceed the max stack sizes of items. Empty items are ignored.
 	 * <p>
 	 * No items are cloned. This means that items passed into this method may be modified.
 	 *
 	 * @return a consolidated list of items
 	 */
-	public static ArrayList<ItemStack> combineSimilarStacksNoClone(List<ItemStack> items) {
-		return combineSimilarStacks(items.toArray(new ItemStack[0]), false, false);
+	public static ArrayList<ItemStack> combineSimilarItemsNoClone(List<ItemStack> items) {
+		return combineSimilarItems(items.toArray(new ItemStack[0]), false, false);
 	}
 	
 	// ----------- private methods -----------
 	
-	private static ArrayList<ItemStack> combineSimilarStacks(ItemStack[] items, boolean respectMaxStackSize, boolean cloneItems) {
+	private static ArrayList<ItemStack> combineSimilarItems(ItemStack[] items, boolean respectMaxStackSize, boolean cloneItems) {
 		if (respectMaxStackSize) {
-			return combineSimilarStacksRespectMaxSize(items); // Always clone items
+			return combineSimilarItemsRespectMaxSize(items); // Always clone items
 		} else {
-			return combineSimilarStacksNoRespectMaxSize(items, cloneItems);
+			return combineSimilarItemsNoRespectMaxSize(items, cloneItems);
 		}
 	}
 	
-	private static ArrayList<ItemStack> combineSimilarStacksNoRespectMaxSize(ItemStack[] items, boolean cloneItems) {
+	private static ArrayList<ItemStack> combineSimilarItemsNoRespectMaxSize(ItemStack[] items, boolean cloneItems) {
 		ArrayList<ItemStack> combinedStacks = new ArrayList<>(items.length);
 		
 		if (items.length == 1) {
@@ -211,7 +210,7 @@ public class ItemUtil {
 		return combinedStacks;
 	}
 	
-	private static ArrayList<ItemStack> combineSimilarStacksRespectMaxSize(ItemStack[] items) {
+	private static ArrayList<ItemStack> combineSimilarItemsRespectMaxSize(ItemStack[] items) {
 		ArrayList<ItemStack> combinedStacks = new ArrayList<>(items.length);
 		
 		for (ItemStack item : items) {
@@ -371,7 +370,7 @@ public class ItemUtil {
 	 */
 	@SuppressWarnings("ConstantConditions")
 	public static boolean hasRoomForItems(Inventory inv, SlotGroup group, ItemStack... itemStacks) {
-		itemStacks = combineSimilarStacks(itemStacks, false);
+		itemStacks = combineSimilarItems(itemStacks, false);
 		int emptySlotCount = getEmptySlotCount(inv, group);
 		
 		for (ItemStack itemStack : itemStacks) {
