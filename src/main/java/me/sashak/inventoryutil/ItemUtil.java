@@ -343,7 +343,7 @@ public class ItemUtil {
 	}
 	//</editor-fold>
 	
-	//<editor-fold desc="> hasRoomForItem methods" defaultstate="collapsed">
+	//<editor-fold desc="> hasRoomForItems methods" defaultstate="collapsed">
 	/**
 	 * @see #hasRoomForItems(Inventory, SlotGroup, ItemStack...)
 	 */

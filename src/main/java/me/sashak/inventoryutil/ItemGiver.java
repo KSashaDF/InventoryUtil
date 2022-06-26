@@ -6,6 +6,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.*;
+
 public class ItemGiver {
 	
 	/**
@@ -60,68 +62,134 @@ public class ItemGiver {
 		}
 	}
 	
-	public static void giveItems(InventoryHolder holder, SlotGroup group, ItemStack... items) {
-		giveItems(holder.getInventory(), group, items);
+	/**
+	 * @see #giveItems(Inventory, SlotGroup, List)
+	 */
+	@Nullable
+	public static ArrayList<ItemStack> giveItems(InventoryHolder holder, SlotGroup group, ItemStack... items) {
+		return giveItems(holder.getInventory(), group, items);
 	}
 	
-	public static void giveItems(Inventory inv, SlotGroup group, ItemStack... items) {
+	/**
+	 * @see #giveItems(Inventory, SlotGroup, List)
+	 */
+	@SuppressWarnings("DuplicatedCode")
+	@Nullable
+	public static ArrayList<ItemStack> giveItems(Inventory inv, SlotGroup group, ItemStack... items) {
+		ArrayList<ItemStack> leftoverItems = null;
+		
 		for (ItemStack itemStack : items) {
-			giveItem(inv, group, itemStack);
+			ItemStack leftoverItem = giveItem(inv, group, itemStack);
+			
+			if (leftoverItem != null) {
+				if (leftoverItems == null) {
+					leftoverItems = new ArrayList<>();
+				}
+				
+				leftoverItems.add(leftoverItem);
+			}
 		}
+		
+		return leftoverItems;
 	}
 	
-	private static void giveItem(Inventory inv, SlotGroup group, ItemStack itemStack) {
-		if (ItemUtil.isEmptyItem(itemStack)) {
-			return;
-		}
+	/**
+	 * @see #giveItems(Inventory, SlotGroup, List)
+	 */
+	@Nullable
+	public static ArrayList<ItemStack> giveItems(InventoryHolder holder, SlotGroup group, List<ItemStack> items) {
+		return giveItems(holder.getInventory(), group, items);
+	}
+	
+	/**
+	 * Gives the items to the inventory. Prioritizes partial stacks in the inventory. Items with
+	 * stack sizes above their max stack sizes are acceptable and will be handled appropriately.
+	 * Any items that could not be given are returned.
+	 *
+	 * @return a list of items that could not be given because the inventory is full. Null if all
+	 * items were successfully given. If the inputted item list is compacted with no respect to
+	 * max stack size, then so will be outputted list of leftover items. Otherwise, no guarantees
+	 * are given to compactness
+	 */
+	@SuppressWarnings("DuplicatedCode")
+	@Nullable
+	public static ArrayList<ItemStack> giveItems(Inventory inv, SlotGroup group, List<ItemStack> items) {
+		ArrayList<ItemStack> leftoverItems = null;
 		
-		int[] partialSlots = group.getSlots(inv, ItemPredicates.onlyPartialStacks());
-		
-		int giveableStackSize = itemStack.getAmount();
-		int givenStackSize = 0;
-		
-		// Loops through all the slots with a partial stack in them.
-		for (int checkSlot : partialSlots) {
-			// Checks if any more items need to be given.
-			if (givenStackSize < giveableStackSize) {
-				ItemStack checkSlotStack = inv.getItem(checkSlot);
-				
-				int checkSlotSize = checkSlotStack.getAmount();
-				int checkSlotMaxSize = checkSlotStack.getMaxStackSize();
-				
-				// If the checked stack is not a full stack...
-				if (checkSlotSize < checkSlotMaxSize) {
-					int putAmount = checkSlotMaxSize - checkSlotSize;
-					
-					if (putAmount > giveableStackSize - givenStackSize) {
-						putAmount = giveableStackSize - givenStackSize;
-					}
-					
-					checkSlotStack.setAmount(checkSlotSize + putAmount);
-					givenStackSize += putAmount;
-					
-					// Updates the item in the player's inventory.
-					inv.setItem(checkSlot, checkSlotStack);
-				}
-			} else {
-				return;
-			}
-		}
-		
-		// Checks if any more items need to be given.
-		if (givenStackSize < giveableStackSize) {
-			// If not all items have been given yet, attempt to fill empty slots.
-			int[] emptySlots = group.getSlots(inv, ItemPredicates.onlyEmptyItems());
+		for (ItemStack itemStack : items) {
+			ItemStack leftoverItem = giveItem(inv, group, itemStack);
 			
-			// If any empty slots are present...
-			if (emptySlots.length > 0) {
-				// Put what is remaining of the give item stack in the empty slot.
-				ItemStack putItem = itemStack.clone();
-				putItem.setAmount(giveableStackSize - givenStackSize);
+			if (leftoverItem != null) {
+				if (leftoverItems == null) {
+					leftoverItems = new ArrayList<>();
+				}
 				
-				inv.setItem(emptySlots[0], putItem);
+				leftoverItems.add(leftoverItem);
 			}
 		}
+		
+		return leftoverItems;
+	}
+	
+	@SuppressWarnings("ConstantConditions")
+	private static ItemStack giveItem(Inventory inv, SlotGroup group, ItemStack item) {
+		if (ItemUtil.isEmptyItem(item)) {
+			return null;
+		}
+		
+		int maxStackSize = item.getMaxStackSize();
+		int amountToGive = item.getAmount();
+		
+		// Prioritize slots with partial stacks
+		int[] partialStackSlots = group.getSlots(inv, ItemPredicates.onlyPartialStacks());
+		
+		
+		for (int slot : partialStackSlots) {
+			ItemStack slotItem = inv.getItem(slot);
+			
+			if (ItemUtil.areItemsSimilar(item, slotItem)) {
+				int slotAmount = slotItem.getAmount();
+				int transferAmount = Math.min(maxStackSize - slotAmount, amountToGive);
+				
+				slotItem.setAmount(slotAmount + transferAmount);
+				amountToGive -= transferAmount;
+				inv.setItem(slot, slotItem);
+				
+				if (amountToGive == 0) {
+					return null;
+				}
+			}
+		}
+		
+		// All partial slots are full, fill empty slots instead
+		int[] emptySlots = group.getSlots(inv, ItemPredicates.onlyEmptyItems());
+		
+		if (emptySlots.length > 0) {
+			if (amountToGive <= maxStackSize) {
+				item = item.clone();
+				item.setAmount(amountToGive);
+				inv.setItem(emptySlots[0], item);
+				
+				return null;
+			} else {
+				for (int emptySlot : emptySlots) {
+					int amount = Math.min(maxStackSize, amountToGive);
+					amountToGive -= amount;
+					
+					ItemStack slotItem = item.clone();
+					slotItem.setAmount(amount);
+					inv.setItem(emptySlot, slotItem);
+					
+					if (amountToGive == 0) {
+						return null;
+					}
+				}
+			}
+		}
+		
+		item = item.clone();
+		item.setAmount(amountToGive);
+		return item;
 	}
 	
 	/**
