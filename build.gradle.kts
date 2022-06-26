@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "me.sashak"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -30,14 +30,50 @@ java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 }
 
+tasks.register<Jar>("sourcesJar") {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allJava)
+}
+
+tasks.register<Jar>("javadocJar") {
+    archiveClassifier.set("javadoc")
+    from(tasks.javadoc.get().destinationDir)
+}
+
 publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            setUrl("https://maven.pkg.github.com/KSashaDF/InventoryUtil")
+            url = uri("https://maven.pkg.github.com/KSashaDF/InventoryUtil")
+
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+
+    publications {
+        create<MavenPublication>("github-packages") {
+            from(components["java"])
+            artifact(tasks["sourcesJar"])
+            artifact(tasks["javadocJar"])
+
+            pom {
+                name.set("InventoryUtil")
+
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("http://www.opensource.org/licenses/mit-license.php")
+                    }
+                }
+
+                scm {
+                    connection.set("scm:git:git://github.com/KSashaDF/InventoryUtil.git")
+                    developerConnection.set("scm:git:ssh://github.com:KSashaDF/InventoryUtil.git")
+                    url.set("https://github.com/KSashaDF/InventoryUtil")
+                }
             }
         }
     }
