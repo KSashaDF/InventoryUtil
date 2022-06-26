@@ -105,6 +105,108 @@ public class ItemUtil {
 		return a != null && a.equals(b);
 	}
 	
+	//<editor-fold desc="> getItemCount methods" defaultstate="collapsed">
+	/**
+	 * @see #getItemCount(Inventory, SlotGroup)
+	 */
+	public static int getItemCount(InventoryHolder holder, SlotGroup group) {
+		return getItemCount(holder.getInventory(), group);
+	}
+	
+	/**
+	 * Adds up the stack sizes of the items in the slot group. Null and air items are ignored.
+	 */
+	public static int getItemCount(Inventory inv, SlotGroup group) {
+		ItemStack[] items = group.getSlotItems(inv);
+		int itemCount = 0;
+		
+		for (ItemStack item : items) {
+			if (!isEmptyItem(item)) {
+				itemCount += item.getAmount();
+			}
+		}
+		
+		return itemCount;
+	}
+	
+	/**
+	 * Adds up the stack sizes of the items in the array. Null and air items are ignored.
+	 */
+	public static int getItemCount(ItemStack... itemStacks) {
+		int itemCount = 0;
+		
+		for (ItemStack itemStack : itemStacks) {
+			if (!isEmptyItem(itemStack)) {
+				itemCount += itemStack.getAmount();
+			}
+		}
+		
+		return itemCount;
+	}
+	
+	/**
+	 * Adds up the stack sizes of the items in the list. Null and air items are ignored.
+	 */
+	public static int getItemCount(ArrayList<ItemStack> itemStacks) {
+		int itemCount = 0;
+		
+		for (ItemStack itemStack : itemStacks) {
+			if (!isEmptyItem(itemStack)) {
+				itemCount += itemStack.getAmount();
+			}
+		}
+		
+		return itemCount;
+	}
+	//</editor-fold>
+	
+	//<editor-fold desc="> getFirstEmptySlot methods" defaultstate="collapsed">
+	/**
+	 * @see #getFirstEmptySlot(Inventory, SlotGroup)
+	 */
+	public static int getFirstEmptySlot(InventoryHolder holder, SlotGroup group) {
+		return getFirstEmptySlot(holder.getInventory(), group);
+	}
+	
+	/**
+	 * @return the first empty slot in the slot group, and -1 if there are no empty slots. Whether
+	 * a slot is empty is determined by the {@link #isEmptyItem(ItemStack)} method
+	 */
+	public static int getFirstEmptySlot(Inventory inv, SlotGroup group) {
+		for (int slot : group.getSlots(inv)) {
+			if (isEmptyItem(inv.getItem(slot))) {
+				return slot;
+			}
+		}
+		
+		return -1;
+	}
+	//</editor-fold>
+	
+	//<editor-fold desc="> getEmptySlotCount methods" defaultstate="collapsed">
+	/**
+	 * @see #getEmptySlotCount(Inventory, SlotGroup)
+	 */
+	public static int getEmptySlotCount(InventoryHolder holder, SlotGroup group) {
+		return getEmptySlotCount(holder.getInventory(), group);
+	}
+	
+	/**
+	 * @return the amount of empty slots in the slot group
+	 */
+	public static int getEmptySlotCount(Inventory inv, SlotGroup group) {
+		int emptySlots = 0;
+		
+		for (ItemStack slotItem : group.getSlotItems(inv)) {
+			if (isEmptyItem(slotItem)) {
+				emptySlots++;
+			}
+		}
+		
+		return emptySlots;
+	}
+	//</editor-fold>
+	
 	//<editor-fold desc="> combineSimilarItems methods" defaultstate="collapsed">
 	/**
 	 * @see #combineSimilarItems(List, boolean)
@@ -171,16 +273,16 @@ public class ItemUtil {
 	}
 	
 	private static ArrayList<ItemStack> combineSimilarItemsNoRespectMaxSize(ItemStack[] items, boolean cloneItems) {
-		ArrayList<ItemStack> combinedStacks = new ArrayList<>(items.length);
+		ArrayList<ItemStack> combinedItems = new ArrayList<>(items.length);
 		
 		if (items.length == 1) {
 			if (cloneItems) {
-				combinedStacks.add(items[0].clone());
+				combinedItems.add(items[0].clone());
 			} else {
-				combinedStacks.add(items[0]);
+				combinedItems.add(items[0]);
 			}
 			
-			return combinedStacks;
+			return combinedItems;
 		}
 		
 		for (ItemStack item : items) {
@@ -188,157 +290,61 @@ public class ItemUtil {
 				continue;
 			}
 			
-			for (int combinedIndex = 0; combinedIndex <= combinedStacks.size(); combinedIndex++) {
-				if (combinedIndex == combinedStacks.size()) {
+			for (int combinedIndex = 0; combinedIndex <= combinedItems.size(); combinedIndex++) {
+				if (combinedIndex == combinedItems.size()) {
 					if (cloneItems) {
 						item = item.clone();
 					}
 					
-					combinedStacks.add(item);
+					combinedItems.add(item);
 					break;
 				} else {
-					ItemStack combinedStack = combinedStacks.get(combinedIndex);
+					ItemStack combinedItem = combinedItems.get(combinedIndex);
 					
-					if (combinedStack.isSimilar(item)) {
-						combinedStack.setAmount(combinedStack.getAmount() + item.getAmount());
+					if (combinedItem.isSimilar(item)) {
+						combinedItem.setAmount(combinedItem.getAmount() + item.getAmount());
 						break;
 					}
 				}
 			}
 		}
 		
-		return combinedStacks;
+		return combinedItems;
 	}
 	
 	private static ArrayList<ItemStack> combineSimilarItemsRespectMaxSize(ItemStack[] items) {
-		ArrayList<ItemStack> combinedStacks = new ArrayList<>(items.length);
+		ArrayList<ItemStack> combinedItems = new ArrayList<>(items.length);
 		
 		for (ItemStack item : items) {
 			if (isEmptyItem(item)) {
 				continue;
 			}
 			
-			for (int combinedIndex = 0; combinedIndex <= combinedStacks.size(); combinedIndex++) {
-				if (combinedIndex == combinedStacks.size()) {
-					combinedStacks.add(item.clone());
+			for (int combinedIndex = 0; combinedIndex <= combinedItems.size(); combinedIndex++) {
+				if (combinedIndex == combinedItems.size()) {
+					combinedItems.add(item.clone());
 					break;
 				} else {
-					ItemStack combinedStack = combinedStacks.get(combinedIndex);
+					ItemStack combinedItem = combinedItems.get(combinedIndex);
 					
-					if (combinedStack.isSimilar(item)) {
+					if (combinedItem.isSimilar(item)) {
 						int maxStackSize = item.getMaxStackSize();
 						
-						if (item.getAmount() <= maxStackSize - combinedStack.getAmount()) {
-							// Put all of the item into the combinedStack and stop iterating
-							combinedStack.setAmount(combinedStack.getAmount() + item.getAmount());
+						if (item.getAmount() <= maxStackSize - combinedItem.getAmount()) {
+							// Put all of the item into the combinedItem and stop iterating
+							combinedItem.setAmount(combinedItem.getAmount() + item.getAmount());
 							break;
 						} else {
-							// Put only part of the item into the combinedStack and keep iterating
-							item.setAmount(item.getAmount() - (maxStackSize - combinedStack.getAmount()));
-							combinedStack.setAmount(maxStackSize);
+							// Put only part of the item into the combinedItem and keep iterating
+							item.setAmount(item.getAmount() - (maxStackSize - combinedItem.getAmount()));
+							combinedItem.setAmount(maxStackSize);
 						}
 					}
 				}
 			}
 		}
 		
-		return combinedStacks;
-	}
-	//</editor-fold>
-	
-	//<editor-fold desc="> getMatchingItemCount methods" defaultstate="collapsed">
-	public static int getItemCount(InventoryHolder holder, SlotGroup group) {
-		return getItemCount(holder.getInventory(), group);
-	}
-	
-	public static int getItemCount(Inventory inv, SlotGroup group) {
-		ItemStack[] items = group.getSlotItems(inv);
-		int itemCount = 0;
-		
-		for (ItemStack item : items) {
-			itemCount += item.getAmount();
-		}
-		
-		return itemCount;
-	}
-	//</editor-fold>
-	
-	//<editor-fold desc="> getFirstEmptySlot methods" defaultstate="collapsed">
-	/**
-	 * @see #getFirstEmptySlot(Inventory, SlotGroup)
-	 */
-	public static int getFirstEmptySlot(InventoryHolder holder, SlotGroup group) {
-		return getFirstEmptySlot(holder.getInventory(), group);
-	}
-	
-	/**
-	 * @return the first empty slot in the slot group, -1 if no slots are empty. Whether a slot
-	 * is empty is determined by the {@link #isEmptyItem(ItemStack)} method
-	 */
-	public static int getFirstEmptySlot(Inventory inv, SlotGroup group) {
-		for (int slot : group.getSlots(inv)) {
-			if (isEmptyItem(inv.getItem(slot))) {
-				return slot;
-			}
-		}
-		
-		return -1;
-	}
-	//</editor-fold>
-	
-	//<editor-fold desc="> getEmptySlotCount methods" defaultstate="collapsed">
-	/**
-	 * @see #getEmptySlotCount(Inventory, SlotGroup)
-	 */
-	public static int getEmptySlotCount(InventoryHolder holder, SlotGroup group) {
-		return getEmptySlotCount(holder.getInventory(), group);
-	}
-	
-	/**
-	 * @return the amount of empty slots in the inventory
-	 */
-	public static int getEmptySlotCount(Inventory inv, SlotGroup group) {
-		int emptySlots = 0;
-		
-		for (ItemStack slotItem : group.getSlotItems(inv)) {
-			if (isEmptyItem(slotItem)) {
-				emptySlots++;
-			}
-		}
-		
-		return emptySlots;
-	}
-	//</editor-fold>
-	
-	//<editor-fold desc="> getItemCount methods" defaultstate="collapsed">
-	/**
-	 * Adds up the stack sizes of the items in the array. Null and air items are ignored.
-	 */
-	public static int getItemCount(ItemStack... itemStacks) {
-		int itemCount = 0;
-		
-		for (ItemStack itemStack : itemStacks) {
-			if (!isEmptyItem(itemStack)) {
-				itemCount += itemStack.getAmount();
-			}
-		}
-		
-		return itemCount;
-	}
-	
-	/**
-	 * Adds up the stack sizes of the items in the list. Null and air items are ignored.
-	 */
-	public static int getItemCount(ArrayList<ItemStack> itemStacks) {
-		int itemCount = 0;
-		
-		for (ItemStack itemStack : itemStacks) {
-			if (!isEmptyItem(itemStack)) {
-				itemCount += itemStack.getAmount();
-			}
-		}
-		
-		return itemCount;
+		return combinedItems;
 	}
 	//</editor-fold>
 	
@@ -400,6 +406,46 @@ public class ItemUtil {
 				if (emptySlotCount < 0) {
 					return false;
 				}
+			}
+		}
+		
+		return true;
+	}
+	//</editor-fold>
+	
+	//<editor-fold desc="> hasAllItems methods" defaultstate="collapsed">
+	/**
+	 * @see #hasAllItems(Inventory, SlotGroup, ItemStack...)
+	 */
+	public static boolean hasAllItems(InventoryHolder holder, SlotGroup group, List<ItemStack> items) {
+		return hasAllItems(holder, group, items.toArray(new ItemStack[0]));
+	}
+	
+	/**
+	 * @see #hasAllItems(Inventory, SlotGroup, ItemStack...)
+	 */
+	public static boolean hasAllItems(Inventory inv, SlotGroup group, List<ItemStack> items) {
+		return hasAllItems(inv, group, items.toArray(new ItemStack[0]));
+	}
+	
+	/**
+	 * @see #hasAllItems(Inventory, SlotGroup, ItemStack...)
+	 */
+	public static boolean hasAllItems(InventoryHolder holder, SlotGroup group, ItemStack... items) {
+		return hasAllItems(holder.getInventory(), group, items);
+	}
+	
+	/**
+	 * @return whether the slot group contains all inputted items. Empty items are ignored
+	 */
+	public static boolean hasAllItems(Inventory inv, SlotGroup group, ItemStack... items) {
+		ArrayList<ItemStack> combinedItems = combineSimilarItems(items, false, true);
+		
+		for (ItemStack item : combinedItems) {
+			int amountInGroup = getItemCount(inv, group.filterSlots(ItemPredicates.requireSimilarity(item)));
+			
+			if (amountInGroup < item.getAmount()) {
+				return false;
 			}
 		}
 		
