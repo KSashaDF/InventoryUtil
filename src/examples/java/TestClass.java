@@ -1,17 +1,13 @@
 import me.sashak.inventoryutil.ItemGiver;
-import me.sashak.inventoryutil.filter.InventoryFilter;
-import me.sashak.inventoryutil.filter.slot.SlotGroups;
+import me.sashak.inventoryutil.slot.SlotFilter;
+import me.sashak.inventoryutil.slotgroup.SlotGroups;
 import org.bukkit.*;
 import org.bukkit.inventory.*;
-
-import java.util.Arrays;
 
 public class TestClass {
 	
 	public static void test() {
-		ItemGiver.giveItems(new InventoryFilter(SlotGroups.PLAYER_MAIN_INV), getInventory(), new ItemStack(Material.STONE));
-		ItemGiver.putItemInMainHand(null, null);
-		Arrays.asList();
+		ItemGiver.giveItems(new SlotFilter(SlotGroups.PLAYER_MAIN_INV), getInventory(), new ItemStack(Material.STONE));
 	}
 	
 	static Inventory getInventory() {

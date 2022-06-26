@@ -1,4 +1,4 @@
-package me.sashak.inventoryutil.filter.slot;
+package me.sashak.inventoryutil.slotgroup;
 
 import org.bukkit.inventory.Inventory;
 
@@ -24,14 +24,14 @@ class RangedSlotGroup extends SlotGroup {
 	}
 	
 	@Override
-	public boolean contains(Inventory inventory, int slot) {
-		return slot >= min && slot <= max && slot < inventory.getSize();
+	public boolean contains(Inventory inv, int slot) {
+		return slot >= min && slot <= max && slot < inv.getSize();
 	}
 	
 	@Override
-	public int[] getSlots(Inventory inventory) {
-		if (max >= inventory.getSize()) {
-			return Arrays.copyOf(array, inventory.getSize() - min);
+	public int[] getSlots(Inventory inv) {
+		if (max >= inv.getSize()) {
+			return Arrays.copyOf(array, inv.getSize() - min);
 		} else {
 			return Arrays.copyOf(array, array.length);
 		}

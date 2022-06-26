@@ -1,4 +1,4 @@
-package me.sashak.inventoryutil.filter.slot;
+package me.sashak.inventoryutil.slotgroup;
 
 import org.bukkit.inventory.*;
 
@@ -13,13 +13,13 @@ class SingleSlotGroup extends SlotGroup {
 	}
 	
 	@Override
-	public boolean contains(Inventory inventory, int slot) {
-		return slot == this.slot && slot < inventory.getSize();
+	public boolean contains(Inventory inv, int slot) {
+		return slot == this.slot && slot < inv.getSize();
 	}
 	
 	@Override
-	public int[] getSlots(Inventory inventory) {
-		if (slot < inventory.getSize()) {
+	public int[] getSlots(Inventory inv) {
+		if (slot < inv.getSize()) {
 			return new int[] {slot};
 		} else {
 			return new int[0];
@@ -27,9 +27,9 @@ class SingleSlotGroup extends SlotGroup {
 	}
 	
 	@Override
-	public ItemStack[] getSlotItems(Inventory inventory) {
-		if (slot < inventory.getSize()) {
-			return new ItemStack[] {inventory.getItem(slot)};
+	public ItemStack[] getSlotItems(Inventory inv) {
+		if (slot < inv.getSize()) {
+			return new ItemStack[] {inv.getItem(slot)};
 		} else {
 			return new ItemStack[0];
 		}

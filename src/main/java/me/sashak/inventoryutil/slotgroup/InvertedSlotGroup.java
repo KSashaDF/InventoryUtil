@@ -1,4 +1,4 @@
-package me.sashak.inventoryutil.filter.slot;
+package me.sashak.inventoryutil.slotgroup;
 
 import org.bukkit.inventory.Inventory;
 
@@ -13,14 +13,14 @@ class InvertedSlotGroup extends SlotGroup {
 	}
 	
 	@Override
-	public boolean contains(Inventory inventory, int slot) {
-		return !slotGroup.contains(inventory, slot);
+	public boolean contains(Inventory inv, int slot) {
+		return !slotGroup.contains(inv, slot);
 	}
 	
 	@Override
-	public int[] getSlots(Inventory inventory) {
-		int[] slots = slotGroup.getSlots(inventory);
-		boolean[] slotSet = new boolean[inventory.getSize()];
+	public int[] getSlots(Inventory inv) {
+		int[] slots = slotGroup.getSlots(inv);
+		boolean[] slotSet = new boolean[inv.getSize()];
 		
 		Arrays.fill(slotSet, true);
 		for (int i : slots) slotSet[i] = false;

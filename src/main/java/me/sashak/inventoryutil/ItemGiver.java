@@ -1,69 +1,81 @@
 package me.sashak.inventoryutil;
 
-import me.sashak.inventoryutil.filter.InventoryFilter;
-import me.sashak.inventoryutil.filter.slot.*;
-import org.bukkit.Material;
+import me.sashak.inventoryutil.itempredicate.ItemPredicates;
+import me.sashak.inventoryutil.slotgroup.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
-
-import javax.annotation.Nullable;
-import java.util.Objects;
+import org.jetbrains.annotations.Nullable;
 
 public class ItemGiver {
 	
+	/**
+	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
+	 */
 	public static void setItems(InventoryHolder holder, SlotGroup group, ItemStack... items) {
-		setItems(holder.getInventory(), new InventoryFilter(group), items);
+		setItems(holder, group, true, items);
 	}
+	
+	/**
+	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
+	 */
 	public static void setItems(Inventory inv, SlotGroup group, ItemStack... items) {
-		setItems(inv, new InventoryFilter(group), items);
+		setItems(inv, group, true, items);
 	}
 	
-	public static void setItems(InventoryHolder holder, InventoryFilter filter, ItemStack... items) {
-		setItems(holder.getInventory(), filter, items);
+	/**
+	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
+	 */
+	public static void setItems(InventoryHolder holder, SlotGroup group, boolean cloneItems, ItemStack... items) {
+		setItems(holder.getInventory(), group, cloneItems, items);
 	}
 	
-	public static void setItems(Inventory inv, InventoryFilter filter, ItemStack... items) {
-		int[] modifiedSlots = ItemUtil.getMatchingSlots(filter, inv);
+	/**
+	 * Sets the contents of the slots in the slot group. All slots are affected. If the amount of
+	 * slots is greater than the length of the item array, null will be used. The slots are set in
+	 * the order they appear in in the slot group.
+	 */
+	public static void setItems(Inventory inv, SlotGroup group, boolean cloneItems, ItemStack... items) {
+		int[] slotsToSet = group.getSlots(inv);
 		int itemIndex = 0;
 		
-		
-		// Loops through all slots that should be modified.
-		for (int modifiedSlot : modifiedSlots) {
-			ItemStack currentSlotItem = inv.getItem(modifiedSlot);
-			ItemStack newSlotItem;
+		for (int slotToSet : slotsToSet) {
+			ItemStack currentItem = inv.getItem(slotToSet);
+			ItemStack itemToSet;
 			
-			// Gets the given item from the item array. If the given index does not exist within the array use null.
+			// Gets the next item from the item array. If there are no more items in the item array, use null instead
 			if (itemIndex < items.length) {
-				newSlotItem = items[itemIndex].clone();
+				itemToSet = items[itemIndex];
+				itemIndex++;
+				
+				if (cloneItems) {
+					itemToSet = itemToSet.clone();
+				}
 			} else {
-				newSlotItem = null;
+				itemToSet = null;
 			}
 			
-			// Checks if the old and new slot items are not equal.
-			if (newSlotItem != null && newSlotItem.getType() != Material.AIR && !Objects.equals(currentSlotItem, newSlotItem)) {
-				inv.setItem(modifiedSlot, newSlotItem);
+			if (!ItemUtil.areItemsEqual(currentItem, itemToSet)) {
+				inv.setItem(slotToSet, itemToSet);
 			}
-			
-			itemIndex++;
 		}
 	}
 	
-	public static void giveItems(InventoryFilter filter, InventoryHolder holder, ItemStack... items) {
-		giveItems(filter, holder.getInventory(), items);
+	public static void giveItems(InventoryHolder holder, SlotGroup group, ItemStack... items) {
+		giveItems(holder.getInventory(), group, items);
 	}
 	
-	public static void giveItems(InventoryFilter filter, Inventory inv, ItemStack... items) {
+	public static void giveItems(Inventory inv, SlotGroup group, ItemStack... items) {
 		for (ItemStack itemStack : items) {
-			givePlayerItem(filter, inv, itemStack);
+			giveItem(inv, group, itemStack);
 		}
 	}
 	
-	private static void givePlayerItem(InventoryFilter filter, Inventory inv, ItemStack itemStack) {
+	private static void giveItem(Inventory inv, SlotGroup group, ItemStack itemStack) {
 		if (ItemUtil.isEmptyItem(itemStack)) {
 			return;
 		}
 		
-		int[] partialSlots = ItemUtil.getMatchingSlots(itemStack, filter, inv);
+		int[] partialSlots = group.getSlots(inv, ItemPredicates.onlyPartialStacks());
 		
 		int giveableStackSize = itemStack.getAmount();
 		int givenStackSize = 0;
@@ -99,7 +111,7 @@ public class ItemGiver {
 		// Checks if any more items need to be given.
 		if (givenStackSize < giveableStackSize) {
 			// If not all items have been given yet, attempt to fill empty slots.
-			int[] emptySlots = ItemUtil.getMatchingSlots(null, filter, inv);
+			int[] emptySlots = group.getSlots(inv, ItemPredicates.onlyEmptyItems());
 			
 			// If any empty slots are present...
 			if (emptySlots.length > 0) {
@@ -112,20 +124,12 @@ public class ItemGiver {
 		}
 	}
 	
-	public static void setMainHandItem(InventoryHolder holder, ItemStack item) {
-		setMainHandItem(holder.getInventory(), item);
-	}
-	
-	public static void setMainHandItem(Inventory inv, ItemStack item) {
-		setItems(inv, SlotGroups.PLAYER_MAIN_HAND, item);
-	}
-	
 	/**
 	 * @see #putItemInMainHand(Player, ItemStack, boolean)
 	 */
 	@Nullable
 	public static ItemStack putItemInMainHand(Player player, ItemStack item) {
-		return putItemInMainHand(player, item, false);
+		return putItemInMainHand(player, item, true);
 	}
 	
 	/**
@@ -134,24 +138,28 @@ public class ItemGiver {
 	 * If an item is already in the player's main hand, the item is put into the first empty hotbar
 	 * slot, and the player's selected slot is changed to the modified slot. If the hotbar is full,
 	 * the player's main hand item is moved elsewhere, and the item is put in the main hand slot.
-	 * If the main hand item cannot be moved elsewhere, it is replaced by the item and used as the
-	 * return value for this method.
+	 * If the main hand item cannot be moved elsewhere, it is replaced by the item and returned by
+	 * this method.
 	 *
-	 * @param checkForSpace if true, nothing will be done if the player's inventory is full. The
-	 *                      inputted item will be returned instead
-	 * @return the item that was removed from the player's inventory, null if no item was removed.
-	 * If the checkForSpace flag is true, the inputted item will be returned
+	 * @param allowReplacement if false, nothing will be done if the player's inventory is full. The
+	 *                         inputted item will be returned instead
+	 * @return null if the item was successfully put into the player's main hand. If an item needed
+	 * to be removed from the player's inventory to make space for the new item, the removed item
+	 * will be returned. If item removal is forbidden by the allowReplacement flag, the inputted
+	 * item will be returned.
 	 */
 	@Nullable
-	public static ItemStack putItemInMainHand(Player player, ItemStack item, boolean checkForSpace) {
+	public static ItemStack putItemInMainHand(Player player, ItemStack item, boolean allowReplacement) {
 		PlayerInventory inv = player.getInventory();
 		ItemStack mainHandItem = inv.getItemInMainHand();
 		
+		// Try putting the item into the current main hand slot
 		if (ItemUtil.isEmptyItem(mainHandItem)) {
-			setMainHandItem(inv, item);
+			inv.setItemInMainHand(item);
 			return null;
 		}
 		
+		// Try putting the item into an empty hotbar slot
 		int firstEmptyHotbar = ItemUtil.getFirstEmptySlot(inv, SlotGroups.PLAYER_HOTBAR);
 		
 		if (firstEmptyHotbar != -1) {
@@ -160,19 +168,22 @@ public class ItemGiver {
 			return null;
 		}
 		
-		InventoryFilter mainInvMinusHand = new InventoryFilter(SlotGroups.PLAYER_MAIN_INV.subtractGroup(SlotGroups.PLAYER_MAIN_HAND));
+		// Try moving the held item elsewhere and putting the item into the current main hand slot
+		SlotGroup mainInvMinusHand = SlotGroups.PLAYER_MAIN_INV.subtractGroup(SlotGroups.PLAYER_MAIN_HAND);
 		
 		if (ItemUtil.hasRoomForItems(inv, mainInvMinusHand, mainHandItem)) {
-			setMainHandItem(inv, item);
-			giveItems(mainInvMinusHand, inv, mainHandItem);
+			inv.setItemInMainHand(item);
+			giveItems(inv, mainInvMinusHand, mainHandItem);
 			return null;
-		} else {
-			if (checkForSpace) {
-				return item;
-			} else {
-				setMainHandItem(inv, item);
-				return mainHandItem;
-			}
 		}
+		
+		// Try replacing the held item with the new item
+		if (allowReplacement) {
+			inv.setItemInMainHand(item);
+			return mainHandItem;
+		}
+		
+		// Unable to put the item in the player's main hand
+		return item;
 	}
 }

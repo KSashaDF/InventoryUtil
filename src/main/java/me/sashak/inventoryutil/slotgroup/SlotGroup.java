@@ -1,26 +1,35 @@
-package me.sashak.inventoryutil.filter.slot;
+package me.sashak.inventoryutil.slotgroup;
 
+import me.sashak.inventoryutil.itempredicate.ItemPredicate;
 import org.bukkit.inventory.*;
 
 import java.util.function.Function;
 
 public abstract class SlotGroup {
 	
-	public abstract boolean contains(Inventory inventory, int slot);
+	public abstract boolean contains(Inventory inv, int slot);
 	
-	public abstract int[] getSlots(Inventory inventory);
+	public abstract int[] getSlots(Inventory inv);
 	
-	public ItemStack[] getSlotItems(Inventory inventory) {
-		int[] slots = getSlots(inventory);
+	public ItemStack[] getSlotItems(Inventory inv) {
+		int[] slots = getSlots(inv);
 		ItemStack[] items = new ItemStack[slots.length];
 		
 		for (int i = 0; i < slots.length; i++) {
 			int slot = slots[i];
 			
-			items[i] = inventory.getItem(slot);
+			items[i] = inv.getItem(slot);
 		}
 		
 		return items;
+	}
+	
+	public final int[] getSlots(Inventory inv, ItemPredicate itemPredicate) {
+		return ItemFilterSlotGroup.filterSlots(inv, getSlots(inv), itemPredicate);
+	}
+	
+	public final ItemStack[] getSlotItems(Inventory inv, ItemPredicate itemPredicate) {
+		return ItemFilterSlotGroup.filterSlotItems(inv, getSlots(inv), itemPredicate);
 	}
 	
 	
@@ -35,6 +44,10 @@ public abstract class SlotGroup {
 	
 	public SlotGroup invertGroup() {
 		return new InvertedSlotGroup(this);
+	}
+	
+	public SlotGroup filterSlots(ItemPredicate predicate) {
+		return new ItemFilterSlotGroup(this, predicate);
 	}
 	
 	

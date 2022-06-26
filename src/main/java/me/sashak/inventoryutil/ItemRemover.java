@@ -1,57 +1,66 @@
 package me.sashak.inventoryutil;
 
-import me.sashak.inventoryutil.filter.InventoryFilter;
-import me.sashak.inventoryutil.filter.slot.SlotGroups;
+import me.sashak.inventoryutil.itempredicate.*;
+import me.sashak.inventoryutil.slotgroup.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 
 public class ItemRemover {
 	
-	public static void clearItems(InventoryFilter filter, InventoryHolder holder) {
-		clearItems(filter, holder.getInventory());
+	public static void clearItems(InventoryHolder holder, SlotGroup group, ItemStack... items) {
+		clearItems(holder.getInventory(), group, items);
 	}
 	
-	public static void clearItems(InventoryFilter filter, Inventory inv) {
-		int[] clearableSlots = ItemUtil.getMatchingSlots(filter, inv);
-		
-		for (int clearableSlot : clearableSlots) {
-			inv.setItem(clearableSlot, null);
+	public static void clearItems(Inventory inv, SlotGroup group, ItemStack... items) {
+		clearSlots(inv, group.filterSlots(ItemPredicates.requireSimilarity(items)));
+	}
+	
+	public static void clearSlots(InventoryHolder holder, SlotGroup group) {
+		clearSlots(holder.getInventory(), group);
+	}
+	
+	public static void clearSlots(Inventory inv, SlotGroup group) {
+		for (int slotToClear : group.getSlots(inv)) {
+			inv.setItem(slotToClear, null);
 		}
 	}
 	
-	public static void removeItems(InventoryFilter filter, InventoryHolder holder, ItemStack... clearItems) {
-		removeItems(filter, holder.getInventory(), clearItems);
+	public static void removeItems(InventoryHolder holder, SlotGroup group, ItemStack... itemsToRemove) {
+		removeItems(holder.getInventory(), group, itemsToRemove);
 	}
 	
-	public static void removeItems(InventoryFilter filter, Inventory inv, ItemStack... clearItems) {
-		for (ItemStack clearItem : clearItems) {
-			removeItem(filter, inv, clearItem, clearItem.getAmount());
+	public static void removeItems(Inventory inv, SlotGroup group, ItemStack... itemsToRemove) {
+		for (ItemStack itemToRemove : itemsToRemove) {
+			removeItem(inv, group, ItemPredicates.requireSimilarity(itemsToRemove), itemToRemove.getAmount());
 		}
 	}
 	
-	public static void removeItem(InventoryFilter filter, Inventory inv, ItemStack clearItem, int clearAmount) {
-		int[] clearableSlots = ItemUtil.getMatchingSlots(clearItem, filter, inv);
-		int clearedAmount = 0;
+	public static void removeItem(InventoryHolder holder, SlotGroup group, ItemPredicate predicate, int amountToRemove) {
+		removeItem(holder.getInventory(), group, predicate, amountToRemove);
+	}
+	
+	public static void removeItem(Inventory inv, SlotGroup group, ItemPredicate predicate, int amountToRemove) {
+		int[] affectedSlots = group.getSlots(inv, predicate);
+		int amountRemoved = 0;
 		
-		for (int clearableSlot : clearableSlots) {
-			ItemStack slotItem = inv.getItem(clearableSlot);
+		for (int affectedSlot : affectedSlots) {
+			ItemStack slotItem = inv.getItem(affectedSlot);
+			if (ItemUtil.isEmptyItem(slotItem)) {
+				return;
+			}
 			int stackSize = slotItem.getAmount();
 			
-			// Checks if the full stack may be cleared.
-			if (clearedAmount + stackSize <= clearAmount) {
-				inv.setItem(clearableSlot, null);
-				clearedAmount += stackSize;
+			// Check if the full stack can be cleared
+			if (amountRemoved + stackSize <= amountToRemove) {
+				inv.setItem(affectedSlot, null);
+				amountRemoved += stackSize;
 				
-				// Else attempts to clear part of the stack.
-			} else if (clearedAmount < clearAmount) {
-				slotItem.setAmount(stackSize - (clearAmount - clearedAmount));
-				inv.setItem(clearableSlot, slotItem);
-				
-				break;
-				
-				// Otherwise just kill the loop.
+				// Otherwise, remove only part of the stack and return
 			} else {
-				break;
+				slotItem.setAmount(stackSize - (amountToRemove - amountRemoved));
+				inv.setItem(affectedSlot, slotItem);
+				
+				return;
 			}
 		}
 	}
@@ -63,8 +72,12 @@ public class ItemRemover {
 		clearPlayerInv(player, true);
 	}
 	
+	/**
+	 * Clears the player's inventory, as well as the cursor and crafting window if
+	 * the clearCursorAndCrafting flag is true.
+	 */
 	public static void clearPlayerInv(Player player, boolean clearCursorAndCrafting) {
-		removeItems(new InventoryFilter(SlotGroups.PLAYER_ENTIRE_INV), player);
+		clearSlots(player, SlotGroups.PLAYER_ENTIRE_INV);
 		
 		if (clearCursorAndCrafting) {
 			player.setItemOnCursor(null);

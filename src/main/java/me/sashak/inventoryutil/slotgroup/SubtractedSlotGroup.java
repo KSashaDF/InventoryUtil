@@ -1,4 +1,4 @@
-package me.sashak.inventoryutil.filter.slot;
+package me.sashak.inventoryutil.slotgroup;
 
 import org.bukkit.inventory.Inventory;
 
@@ -13,15 +13,15 @@ class SubtractedSlotGroup extends SlotGroup {
 	}
 	
 	@Override
-	public boolean contains(Inventory inventory, int slot) {
-		return a.contains(inventory, slot) && !b.contains(inventory, slot);
+	public boolean contains(Inventory inv, int slot) {
+		return a.contains(inv, slot) && !b.contains(inv, slot);
 	}
 	
 	@Override
-	public int[] getSlots(Inventory inventory) {
-		int[] a = this.a.getSlots(inventory);
-		int[] b = this.b.getSlots(inventory);
-		boolean[] slotSet = new boolean[inventory.getSize()];
+	public int[] getSlots(Inventory inv) {
+		int[] a = this.a.getSlots(inv);
+		int[] b = this.b.getSlots(inv);
+		boolean[] slotSet = new boolean[inv.getSize()];
 		
 		for (int i : a) slotSet[i] = true;
 		for (int i : b) slotSet[i] = false;

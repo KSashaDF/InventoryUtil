@@ -1,29 +1,28 @@
 package me.sashak.inventoryutil;
 
-import me.sashak.inventoryutil.filter.InventoryFilter;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemStack;
+import me.sashak.inventoryutil.itempredicate.ItemPredicate;
+import me.sashak.inventoryutil.slotgroup.SlotGroup;
+import org.bukkit.inventory.*;
 
 public class ItemReplacer {
 	
-	public static void replaceItems(InventoryFilter filter, InventoryHolder holder, ItemStack replacementItem, int maxOperations) {
-		replaceItems(filter, holder.getInventory(), replacementItem, maxOperations);
+	/*public static void replaceItems(InventoryHolder holder, SlotGroup group, ItemPredicate predicate, int maxOperations, ItemStack replacementItem) {
+		replaceItems(holder.getInventory(), group, predicate, maxOperations, replacementItem);
 	}
 	
-	/**
+	*//**
 	 * Replaces all items matching the given condition with another item.
 	 * This method accounts for stack sizes, if a given stack is large enough
 	 * for two replacement operations, this method will correctly calculate this,
 	 * along with dealing with any remainders (stack size of 5, replacement
 	 * operation size of 2, 2 operations 1 left over).
 	 *
-	 * @param filter Replaces all items matching this filter
+	 * @param group Replaces all items matching the predicate in this slot group
 	 * @param inv The inventory
 	 * @param replacementItem The item to replace with
 	 * @param maxOperations The maximum amount of replacement operations that can be done
-	 */
-	public static void replaceItems(InventoryFilter filter, Inventory inv, ItemStack replacementItem, int maxOperations) {
+	 *//*
+	public static void replaceItems(Inventory inv, SlotGroup group, ItemPredicate predicate, int maxOperations, ItemStack replacementItem) {
 		int extraItemAmount = 0;
 		int totalReplaceOperations = 0;
 		
@@ -83,5 +82,5 @@ public class ItemReplacer {
 		filter.setFilterItems();
 		ItemGiver.giveItems(filter, inv, extraItems); // Give the extra items.
 		filter.setFilterItems(filterItems);
-	}
+	}*/
 }
