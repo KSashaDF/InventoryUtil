@@ -1,9 +1,10 @@
 plugins {
-    java
+    id("java")
+    id("maven-publish")
 }
 
 group = "me.sashak"
-version = "0.1-SNAPSHOT"
+version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -27,4 +28,17 @@ val examplesCompileOnly: Configuration by configurations.getting {
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            setUrl("https://maven.pkg.github.com/KSashaDF/InventoryUtil")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }

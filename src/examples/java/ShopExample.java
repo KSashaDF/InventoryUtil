@@ -5,7 +5,7 @@ import org.bukkit.inventory.*;
 
 public class ShopExample {
 	
-	public static String attemptTransaction0(Player buyer, Inventory shopInv, ItemStack[] price, ItemStack[] items) {
+	public static String attemptTransaction(Player buyer, Inventory shopInv, ItemStack[] price, ItemStack[] items) {
 		if (!ItemUtil.hasAllItems(buyer, SlotGroups.PLAYER_MAIN_INV, price)) {
 			return "Buyer has insufficient funds";
 		}

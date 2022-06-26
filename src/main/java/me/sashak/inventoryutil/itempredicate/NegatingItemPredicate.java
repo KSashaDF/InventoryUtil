@@ -3,11 +3,11 @@ package me.sashak.inventoryutil.itempredicate;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-class InvertingItemPredicate implements ItemPredicate {
+class NegatingItemPredicate implements ItemPredicate {
 	
 	private final ItemPredicate predicate;
 	
-	public InvertingItemPredicate(ItemPredicate predicate) {
+	public NegatingItemPredicate(ItemPredicate predicate) {
 		this.predicate = predicate;
 	}
 	

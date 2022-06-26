@@ -26,7 +26,7 @@ public class ItemPredicates {
 	}
 	
 	public static ItemPredicate not(ItemPredicate predicate) {
-		return new InvertingItemPredicate(predicate);
+		return new NegatingItemPredicate(predicate);
 	}
 	
 	public static ItemPredicate materialMatches(Material... materials) {
