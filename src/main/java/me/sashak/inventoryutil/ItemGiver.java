@@ -13,6 +13,34 @@ public class ItemGiver {
 	/**
 	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
 	 */
+	public static void setItems(InventoryHolder holder, SlotGroup group, List<ItemStack> items) {
+		setItems(holder, group, true, items);
+	}
+	
+	/**
+	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
+	 */
+	public static void setItems(Inventory inv, SlotGroup group, List<ItemStack> items) {
+		setItems(inv, group, true, items);
+	}
+	
+	/**
+	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
+	 */
+	public static void setItems(InventoryHolder holder, SlotGroup group, boolean cloneItems, List<ItemStack> items) {
+		setItems(holder.getInventory(), group, cloneItems, items);
+	}
+	
+	/**
+	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
+	 */
+	public static void setItems(Inventory inv, SlotGroup group, boolean cloneItems, List<ItemStack> items) {
+		setItems(inv, group, cloneItems, items.toArray(new ItemStack[0]));
+	}
+	
+	/**
+	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
+	 */
 	public static void setItems(InventoryHolder holder, SlotGroup group, ItemStack... items) {
 		setItems(holder, group, true, items);
 	}

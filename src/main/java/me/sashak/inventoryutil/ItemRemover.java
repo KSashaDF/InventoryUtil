@@ -15,6 +15,14 @@ public class ItemRemover {
 		clearSlots(inv, group.filterSlots(ItemPredicates.requireSimilarity(items)));
 	}
 	
+	public static void clearItems(InventoryHolder holder, SlotGroup group, ItemPredicate predicate) {
+		clearItems(holder.getInventory(), group, predicate);
+	}
+	
+	public static void clearItems(Inventory inv, SlotGroup group, ItemPredicate predicate) {
+		clearSlots(inv, group.filterSlots(predicate));
+	}
+	
 	public static void clearSlots(InventoryHolder holder, SlotGroup group) {
 		clearSlots(holder.getInventory(), group);
 	}

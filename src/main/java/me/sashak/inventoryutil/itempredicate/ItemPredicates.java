@@ -4,6 +4,8 @@ import me.sashak.inventoryutil.ItemUtil;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.function.Predicate;
+
 public class ItemPredicates {
 	
 	private static final ItemPredicate ALLOW_ALL = item -> true;
@@ -57,5 +59,9 @@ public class ItemPredicates {
 	
 	public static ItemPredicate onlyPartialStacks() {
 		return ONLY_PARTIAL_STACKS;
+	}
+	
+	public static ItemPredicate checkNamePredicate(Predicate<String> displayNamePredicate, boolean stripColors) {
+		return new DisplayNameItemPredicate(displayNamePredicate, stripColors);
 	}
 }
