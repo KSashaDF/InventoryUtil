@@ -11,8 +11,8 @@ repositories {
 }
 
 dependencies {
-    implementation("org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT")
-    implementation("org.jetbrains:annotations:23.0.0")
+    compileOnly("org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT")
+    compileOnly("org.jetbrains:annotations:23.0.0")
 }
 
 sourceSets {
@@ -21,8 +21,8 @@ sourceSets {
     }
 }
 
-val examplesImplementation: Configuration by configurations.getting {
-    extendsFrom(configurations.implementation.get())
+val examplesCompileOnly: Configuration by configurations.getting {
+    extendsFrom(configurations.compileOnly.get())
 }
 
 java {

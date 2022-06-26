@@ -6,8 +6,13 @@ import org.bukkit.inventory.ItemStack;
 
 public class ItemPredicates {
 	
+	private static final ItemPredicate ALLOW_ALL = item -> true;
+	private static final ItemPredicate ONLY_EMPTY_ITEMS = ItemUtil::isEmptyItem;
+	private static final ItemPredicate NO_EMPTY_ITEMS = item -> !ItemUtil.isEmptyItem(item);
+	private static final ItemPredicate ONLY_PARTIAL_STACKS = item -> !ItemUtil.isEmptyItem(item) && item.getAmount() < item.getMaxStackSize();
+	
 	public static ItemPredicate allowAll() {
-		return item -> true;
+		return ALLOW_ALL;
 	}
 	
 	public static ItemPredicate both(ItemPredicate... predicates) {
@@ -43,14 +48,14 @@ public class ItemPredicates {
 	}
 	
 	public static ItemPredicate onlyEmptyItems() {
-		return ItemUtil::isEmptyItem;
+		return ONLY_EMPTY_ITEMS;
 	}
 	
 	public static ItemPredicate noEmptyItems() {
-		return item -> !ItemUtil.isEmptyItem(item);
+		return NO_EMPTY_ITEMS;
 	}
 	
 	public static ItemPredicate onlyPartialStacks() {
-		return item -> !ItemUtil.isEmptyItem(item) && item.getAmount() < item.getMaxStackSize();
+		return ONLY_PARTIAL_STACKS;
 	}
 }

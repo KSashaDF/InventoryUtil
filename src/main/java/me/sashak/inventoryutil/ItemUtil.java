@@ -106,47 +106,103 @@ public class ItemUtil {
 	}
 	
 	//<editor-fold desc="> combineSimilarStacks methods" defaultstate="collapsed">
+	/**
+	 * @see #combineSimilarStacks(List, boolean)
+	 */
 	public static ItemStack[] combineSimilarStacks(ItemStack[] items) {
-		return combineSimilarStacks0(items).toArray(new ItemStack[0]);
+		return combineSimilarStacks(items, true);
 	}
 	
+	/**
+	 * @see #combineSimilarStacks(List, boolean)
+	 */
 	public static ArrayList<ItemStack> combineSimilarStacks(List<ItemStack> items) {
-		return combineSimilarStacks0(items.toArray(new ItemStack[0]));
+		return combineSimilarStacks(items, true);
 	}
 	
-	private static ArrayList<ItemStack> combineSimilarStacks0(ItemStack[] items) {
+	/**
+	 * @see #combineSimilarStacks(List, boolean)
+	 */
+	public static ItemStack[] combineSimilarStacks(ItemStack[] items, boolean respectMaxStackSize) {
+		return combineSimilarStacks(items, respectMaxStackSize, true).toArray(new ItemStack[0]);
+	}
+	
+	/**
+	 * Consolidates all items into as few stacks as possible. This method will clone all items.
+	 * Empty items are ignored.
+	 *
+	 * @param respectMaxStackSize if false, all similar items will be combined into a single
+	 *                            stack, potentially resulting in stack sizes that far exceed
+	 *                            the max stack sizes of items
+	 * @return a consolidated list of items
+	 */
+	public static ArrayList<ItemStack> combineSimilarStacks(List<ItemStack> items, boolean respectMaxStackSize) {
+		return combineSimilarStacks(items.toArray(new ItemStack[0]), respectMaxStackSize, true);
+	}
+	
+	/**
+	 * @see #combineSimilarStacksNoClone(List)
+	 */
+	public static ItemStack[] combineSimilarStacksNoClone(ItemStack[] items) {
+		return combineSimilarStacks(items, false, false).toArray(new ItemStack[0]);
+	}
+	
+	/**
+	 * Consolidates all items into as few stacks as possible. This method does not respect max
+	 * stack sizes, meaning that all similar items will be combined into a single stack. This will
+	 * potentially result in stack sizes that far exceed the max stack sizes of items. Empty items
+	 * are ignored.
+	 * <p>
+	 * No items are cloned. This means that items passed into this method may be modified.
+	 *
+	 * @return a consolidated list of items
+	 */
+	public static ArrayList<ItemStack> combineSimilarStacksNoClone(List<ItemStack> items) {
+		return combineSimilarStacks(items.toArray(new ItemStack[0]), false, false);
+	}
+	
+	// ----------- private methods -----------
+	
+	private static ArrayList<ItemStack> combineSimilarStacks(ItemStack[] items, boolean respectMaxStackSize, boolean cloneItems) {
+		if (respectMaxStackSize) {
+			return combineSimilarStacksRespectMaxSize(items); // Always clone items
+		} else {
+			return combineSimilarStacksNoRespectMaxSize(items, cloneItems);
+		}
+	}
+	
+	private static ArrayList<ItemStack> combineSimilarStacksNoRespectMaxSize(ItemStack[] items, boolean cloneItems) {
 		ArrayList<ItemStack> combinedStacks = new ArrayList<>(items.length);
 		
 		if (items.length == 1) {
-			combinedStacks.add(items[0]);
+			if (cloneItems) {
+				combinedStacks.add(items[0].clone());
+			} else {
+				combinedStacks.add(items[0]);
+			}
+			
 			return combinedStacks;
 		}
 		
-		if (items.length == 0) {
-			return combinedStacks;
-		}
-		
-		for (ItemStack itemStack : items) {
+		for (ItemStack item : items) {
+			if (isEmptyItem(item)) {
+				continue;
+			}
+			
 			for (int combinedIndex = 0; combinedIndex <= combinedStacks.size(); combinedIndex++) {
 				if (combinedIndex == combinedStacks.size()) {
-					combinedStacks.add(itemStack);
-					break;
+					if (cloneItems) {
+						item = item.clone();
+					}
 					
+					combinedStacks.add(item);
+					break;
 				} else {
 					ItemStack combinedStack = combinedStacks.get(combinedIndex);
 					
-					if (combinedStack == null) {
-						if (itemStack == null) {
-							break;
-						} else {
-							continue;
-						}
-					}
-					
-					if (combinedStack.isSimilar(itemStack)) {
-						combinedStack.setAmount(combinedStack.getAmount() + itemStack.getAmount());
+					if (combinedStack.isSimilar(item)) {
+						combinedStack.setAmount(combinedStack.getAmount() + item.getAmount());
 						break;
-						
 					}
 				}
 			}
@@ -155,9 +211,40 @@ public class ItemUtil {
 		return combinedStacks;
 	}
 	
-	/*public static ItemStack[] combineSimilarStacksNoClone(ItemStack[] itemStacks) {
-	
-	}*/
+	private static ArrayList<ItemStack> combineSimilarStacksRespectMaxSize(ItemStack[] items) {
+		ArrayList<ItemStack> combinedStacks = new ArrayList<>(items.length);
+		
+		for (ItemStack item : items) {
+			if (isEmptyItem(item)) {
+				continue;
+			}
+			
+			for (int combinedIndex = 0; combinedIndex <= combinedStacks.size(); combinedIndex++) {
+				if (combinedIndex == combinedStacks.size()) {
+					combinedStacks.add(item.clone());
+					break;
+				} else {
+					ItemStack combinedStack = combinedStacks.get(combinedIndex);
+					
+					if (combinedStack.isSimilar(item)) {
+						int maxStackSize = item.getMaxStackSize();
+						
+						if (item.getAmount() <= maxStackSize - combinedStack.getAmount()) {
+							// Put all of the item into the combinedStack and stop iterating
+							combinedStack.setAmount(combinedStack.getAmount() + item.getAmount());
+							break;
+						} else {
+							// Put only part of the item into the combinedStack and keep iterating
+							item.setAmount(item.getAmount() - (maxStackSize - combinedStack.getAmount()));
+							combinedStack.setAmount(maxStackSize);
+						}
+					}
+				}
+			}
+		}
+		
+		return combinedStacks;
+	}
 	//</editor-fold>
 	
 	//<editor-fold desc="> getMatchingItemCount methods" defaultstate="collapsed">
@@ -284,7 +371,7 @@ public class ItemUtil {
 	 */
 	@SuppressWarnings("ConstantConditions")
 	public static boolean hasRoomForItems(Inventory inv, SlotGroup group, ItemStack... itemStacks) {
-		itemStacks = combineSimilarStacks(itemStacks);
+		itemStacks = combineSimilarStacks(itemStacks, false);
 		int emptySlotCount = getEmptySlotCount(inv, group);
 		
 		for (ItemStack itemStack : itemStacks) {

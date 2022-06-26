@@ -57,6 +57,10 @@ public class ItemRemover {
 				
 				// Otherwise, remove only part of the stack and return
 			} else {
+				if (amountRemoved == amountToRemove) {
+					return;
+				}
+				
 				slotItem.setAmount(stackSize - (amountToRemove - amountRemoved));
 				inv.setItem(affectedSlot, slotItem);
 				

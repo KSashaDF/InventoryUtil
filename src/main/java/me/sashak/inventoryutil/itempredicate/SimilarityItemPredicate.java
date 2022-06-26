@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 class SimilarityItemPredicate implements ItemPredicate {
 	
-	private final ItemStack[] items;
+	final ItemStack[] items;
 	
 	public SimilarityItemPredicate(ItemStack[] items) {
 		this.items = items;

@@ -1,33 +1,22 @@
 package me.sashak.inventoryutil.itempredicate;
 
-import me.sashak.inventoryutil.ItemUtil;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.jetbrains.annotations.Nullable;
 
-class SimilarityNoDurabilityItemPredicate implements ItemPredicate {
-	
-	private final ItemStack[] items;
+class SimilarityNoDurabilityItemPredicate extends SimilarityItemPredicate {
 	
 	public SimilarityNoDurabilityItemPredicate(ItemStack[] items) {
+		super(items);
+		
 		for (int i = 0; i < items.length; i++) {
 			items[i] = removeDamage(items[i]);
 		}
-		
-		this.items = items;
 	}
 	
 	@Override
 	public boolean test(@Nullable ItemStack item) {
-		item = removeDamage(item);
-		
-		for (ItemStack predicateItem : items) {
-			if (ItemUtil.areItemsSimilar(item, predicateItem)) {
-				return true;
-			}
-		}
-		
-		return false;
+		return super.test(removeDamage(item));
 	}
 	
 	private static ItemStack removeDamage(ItemStack item) {
