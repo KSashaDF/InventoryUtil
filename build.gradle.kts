@@ -60,7 +60,7 @@ publishing {
             artifact(tasks["javadocJar"])
 
             pom {
-                name.set("InventoryUtil")
+                name.set("inventory-util")
 
                 licenses {
                     license {
