@@ -171,7 +171,6 @@ public class ItemGiver {
 		// Prioritize slots with partial stacks
 		int[] partialStackSlots = group.getSlots(inv, ItemPredicates.onlyPartialStacks());
 		
-		
 		for (int slot : partialStackSlots) {
 			ItemStack slotItem = inv.getItem(slot);
 			
