@@ -2,7 +2,7 @@
 
 The goal of this project is to provide a complete solution to item manipulation for Spigot plugins.
 
-The methods provided in the Inventory interface lack the flexibility required for many kinds of item manipulation operations required by plugin developers. This library provides a set of item manipulation methods which should satisfy a far broader range of item manipulation needs.
+The methods provided in the `Inventory` interface lack the flexibility required for many kinds of item manipulation operations required by plugins. This library provides a set of item manipulation methods which should satisfy a far broader range of item manipulation needs.
 
 ## Examples
 

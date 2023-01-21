@@ -7,54 +7,106 @@ import org.bukkit.inventory.*;
 
 public class ItemRemover {
 	
-	public static void clearItems(InventoryHolder holder, SlotGroup group, ItemStack... items) {
-		clearItems(holder.getInventory(), group, items);
+	/**
+	 * @see #clearItems(Inventory, SlotGroup, ItemStack...)
+	 */
+	public static void clearItems(InventoryHolder holder, SlotGroup slots, ItemStack... items) {
+		clearItems(holder.getInventory(), slots, items);
 	}
 	
-	public static void clearItems(Inventory inv, SlotGroup group, ItemStack... items) {
-		clearSlots(inv, group.filterSlots(ItemPredicates.requireSimilarity(items)));
+	/**
+	 * Clears all similar items from the slot group.
+	 */
+	public static void clearItems(Inventory inv, SlotGroup slots, ItemStack... items) {
+		clearSlots(inv, slots.filterSlots(ItemPredicates.requireSimilarity(items)));
 	}
 	
-	public static void clearItems(InventoryHolder holder, SlotGroup group, ItemPredicate predicate) {
-		clearItems(holder.getInventory(), group, predicate);
+	/**
+	 * @see #clearItems(Inventory, SlotGroup, ItemPredicate)
+	 */
+	public static void clearItems(InventoryHolder holder, SlotGroup slots, ItemPredicate predicate) {
+		clearItems(holder.getInventory(), slots, predicate);
 	}
 	
-	public static void clearItems(Inventory inv, SlotGroup group, ItemPredicate predicate) {
-		clearSlots(inv, group.filterSlots(predicate));
+	/**
+	 * Clears all items matching the predicate from the slot group.
+	 */
+	public static void clearItems(Inventory inv, SlotGroup slots, ItemPredicate predicate) {
+		clearSlots(inv, slots.filterSlots(predicate));
 	}
 	
-	public static void clearSlots(InventoryHolder holder, SlotGroup group) {
-		clearSlots(holder.getInventory(), group);
+	/**
+	 * @see #clearSlots(Inventory, SlotGroup)
+	 */
+	public static void clearSlots(InventoryHolder holder, SlotGroup slots) {
+		clearSlots(holder.getInventory(), slots);
 	}
 	
-	public static void clearSlots(Inventory inv, SlotGroup group) {
-		for (int slotToClear : group.getSlots(inv)) {
+	/**
+	 * Clears all slots in the slot group.
+	 */
+	public static void clearSlots(Inventory inv, SlotGroup slots) {
+		for (int slotToClear : slots.getSlots(inv)) {
 			inv.setItem(slotToClear, null);
 		}
 	}
 	
-	public static void removeItems(InventoryHolder holder, SlotGroup group, ItemStack... itemsToRemove) {
-		removeItems(holder.getInventory(), group, itemsToRemove);
+	/**
+	 * @see #removeItems(Inventory, SlotGroup, ItemStack...)
+	 */
+	public static void removeItems(InventoryHolder holder, SlotGroup slots, ItemStack... itemsToRemove) {
+		removeItems(holder.getInventory(), slots, itemsToRemove);
 	}
 	
-	public static void removeItems(Inventory inv, SlotGroup group, ItemStack... itemsToRemove) {
+	/**
+	 * Attempts to remove the given items from the slot group.
+	 *
+	 * Note that this does not mean all similar items will be cleared from the slot group, only
+	 * the amount of items given will be removed.
+	 */
+	public static void removeItems(Inventory inv, SlotGroup slots, ItemStack... itemsToRemove) {
 		for (ItemStack itemToRemove : itemsToRemove) {
-			removeItem(inv, group, ItemPredicates.requireSimilarity(itemsToRemove), itemToRemove.getAmount());
+			removeItem(inv, slots, ItemPredicates.requireSimilarity(itemsToRemove), itemToRemove.getAmount());
 		}
 	}
 	
-	public static void removeItem(InventoryHolder holder, SlotGroup group, ItemPredicate predicate, int amountToRemove) {
-		removeItem(holder.getInventory(), group, predicate, amountToRemove);
+	/**
+	 * @see #removeItem(Inventory, SlotGroup, ItemStack, int)
+	 */
+	public static int removeItem(InventoryHolder holder, SlotGroup slots, ItemStack item, int amountToRemove) {
+		return removeItem(holder.getInventory(), slots, item, amountToRemove);
 	}
 	
-	public static void removeItem(Inventory inv, SlotGroup group, ItemPredicate predicate, int amountToRemove) {
-		int[] affectedSlots = group.getSlots(inv, predicate);
+	/**
+	 * Removes items that are similar to the given item.
+	 *
+	 * @see #removeItem(Inventory, SlotGroup, ItemPredicate, int)
+	 */
+	public static int removeItem(Inventory inv, SlotGroup slots, ItemStack item, int amountToRemove) {
+		return removeItem(inv, slots, ItemPredicates.requireSimilarity(item), amountToRemove);
+	}
+	
+	/**
+	 * @see #removeItem(Inventory, SlotGroup, ItemPredicate, int)
+	 */
+	public static int removeItem(InventoryHolder holder, SlotGroup slots, ItemPredicate predicate, int amountToRemove) {
+		return removeItem(holder.getInventory(), slots, predicate, amountToRemove);
+	}
+	
+	/**
+	 * Removes amountToRemove items that match the item predicate from the slot group. Empty slots
+	 * are skipped. Returns the amount of items that were removed.
+	 *
+	 * @return the amount of items that were removed
+	 */
+	public static int removeItem(Inventory inv, SlotGroup slots, ItemPredicate predicate, int amountToRemove) {
+		int[] affectedSlots = slots.getSlots(inv, predicate);
 		int amountRemoved = 0;
 		
 		for (int affectedSlot : affectedSlots) {
 			ItemStack slotItem = inv.getItem(affectedSlot);
 			if (ItemUtil.isEmptyItem(slotItem)) {
-				return;
+				continue;
 			}
 			int stackSize = slotItem.getAmount();
 			
@@ -66,15 +118,18 @@ public class ItemRemover {
 				// Otherwise, remove only part of the stack and return
 			} else {
 				if (amountRemoved == amountToRemove) {
-					return;
+					return amountRemoved;
 				}
 				
 				slotItem.setAmount(stackSize - (amountToRemove - amountRemoved));
+				amountRemoved -= stackSize;
 				inv.setItem(affectedSlot, slotItem);
 				
-				return;
+				return amountRemoved;
 			}
 		}
+		
+		return amountRemoved;
 	}
 	
 	/**
@@ -85,8 +140,8 @@ public class ItemRemover {
 	}
 	
 	/**
-	 * Clears the player's inventory, as well as the cursor and crafting window if
-	 * the clearCursorAndCrafting flag is true.
+	 * Clears the player's inventory, as well as the cursor and crafting window if the
+	 * clearCursorAndCrafting flag is true.
 	 */
 	public static void clearPlayerInv(Player player, boolean clearCursorAndCrafting) {
 		clearSlots(player, SlotGroups.PLAYER_ENTIRE_INV);

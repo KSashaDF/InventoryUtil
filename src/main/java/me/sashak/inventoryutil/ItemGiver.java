@@ -13,59 +13,59 @@ public class ItemGiver {
 	/**
 	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
 	 */
-	public static void setItems(InventoryHolder holder, SlotGroup group, List<ItemStack> items) {
-		setItems(holder, group, true, items);
+	public static void setItems(InventoryHolder holder, SlotGroup slots, List<ItemStack> items) {
+		setItems(holder, slots, true, items);
 	}
 	
 	/**
 	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
 	 */
-	public static void setItems(Inventory inv, SlotGroup group, List<ItemStack> items) {
-		setItems(inv, group, true, items);
+	public static void setItems(Inventory inv, SlotGroup slots, List<ItemStack> items) {
+		setItems(inv, slots, true, items);
 	}
 	
 	/**
 	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
 	 */
-	public static void setItems(InventoryHolder holder, SlotGroup group, boolean cloneItems, List<ItemStack> items) {
-		setItems(holder.getInventory(), group, cloneItems, items);
+	public static void setItems(InventoryHolder holder, SlotGroup slots, boolean cloneItems, List<ItemStack> items) {
+		setItems(holder.getInventory(), slots, cloneItems, items);
 	}
 	
 	/**
 	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
 	 */
-	public static void setItems(Inventory inv, SlotGroup group, boolean cloneItems, List<ItemStack> items) {
-		setItems(inv, group, cloneItems, items.toArray(new ItemStack[0]));
+	public static void setItems(Inventory inv, SlotGroup slots, boolean cloneItems, List<ItemStack> items) {
+		setItems(inv, slots, cloneItems, items.toArray(new ItemStack[0]));
 	}
 	
 	/**
 	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
 	 */
-	public static void setItems(InventoryHolder holder, SlotGroup group, ItemStack... items) {
-		setItems(holder, group, true, items);
+	public static void setItems(InventoryHolder holder, SlotGroup slots, ItemStack... items) {
+		setItems(holder, slots, true, items);
 	}
 	
 	/**
 	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
 	 */
-	public static void setItems(Inventory inv, SlotGroup group, ItemStack... items) {
-		setItems(inv, group, true, items);
+	public static void setItems(Inventory inv, SlotGroup slots, ItemStack... items) {
+		setItems(inv, slots, true, items);
 	}
 	
 	/**
 	 * @see #setItems(Inventory, SlotGroup, boolean, ItemStack...)
 	 */
-	public static void setItems(InventoryHolder holder, SlotGroup group, boolean cloneItems, ItemStack... items) {
-		setItems(holder.getInventory(), group, cloneItems, items);
+	public static void setItems(InventoryHolder holder, SlotGroup slots, boolean cloneItems, ItemStack... items) {
+		setItems(holder.getInventory(), slots, cloneItems, items);
 	}
 	
 	/**
 	 * Sets the contents of the slots in the slot group. All slots are affected. If the amount of
-	 * slots is greater than the length of the item array, null will be used. The slots are set in
-	 * the order they appear in in the slot group.
+	 * slots is greater than the length of the item array, null will be used instead. The slots
+	 * are set in the order they appear in in the slot group.
 	 */
-	public static void setItems(Inventory inv, SlotGroup group, boolean cloneItems, ItemStack... items) {
-		int[] slotsToSet = group.getSlots(inv);
+	public static void setItems(Inventory inv, SlotGroup slots, boolean cloneItems, ItemStack... items) {
+		int[] slotsToSet = slots.getSlots(inv);
 		int itemIndex = 0;
 		
 		for (int slotToSet : slotsToSet) {
@@ -94,20 +94,19 @@ public class ItemGiver {
 	 * @see #giveItems(Inventory, SlotGroup, List)
 	 */
 	@Nullable
-	public static ArrayList<ItemStack> giveItems(InventoryHolder holder, SlotGroup group, ItemStack... items) {
-		return giveItems(holder.getInventory(), group, items);
+	public static ArrayList<ItemStack> giveItems(InventoryHolder holder, SlotGroup slots, ItemStack... items) {
+		return giveItems(holder.getInventory(), slots, items);
 	}
 	
 	/**
 	 * @see #giveItems(Inventory, SlotGroup, List)
 	 */
-	@SuppressWarnings("DuplicatedCode")
 	@Nullable
-	public static ArrayList<ItemStack> giveItems(Inventory inv, SlotGroup group, ItemStack... items) {
+	public static ArrayList<ItemStack> giveItems(Inventory inv, SlotGroup slots, ItemStack... items) {
 		ArrayList<ItemStack> leftoverItems = null;
 		
 		for (ItemStack itemStack : items) {
-			ItemStack leftoverItem = giveItem(inv, group, itemStack);
+			ItemStack leftoverItem = giveItem(inv, slots, itemStack);
 			
 			if (leftoverItem != null) {
 				if (leftoverItems == null) {
@@ -125,8 +124,8 @@ public class ItemGiver {
 	 * @see #giveItems(Inventory, SlotGroup, List)
 	 */
 	@Nullable
-	public static ArrayList<ItemStack> giveItems(InventoryHolder holder, SlotGroup group, List<ItemStack> items) {
-		return giveItems(holder.getInventory(), group, items);
+	public static ArrayList<ItemStack> giveItems(InventoryHolder holder, SlotGroup slots, List<ItemStack> items) {
+		return giveItems(holder.getInventory(), slots, items);
 	}
 	
 	/**
@@ -139,13 +138,12 @@ public class ItemGiver {
 	 * max stack size, then so will be outputted list of leftover items. Otherwise, no guarantees
 	 * are given to compactness
 	 */
-	@SuppressWarnings("DuplicatedCode")
 	@Nullable
-	public static ArrayList<ItemStack> giveItems(Inventory inv, SlotGroup group, List<ItemStack> items) {
+	public static ArrayList<ItemStack> giveItems(Inventory inv, SlotGroup slots, List<ItemStack> items) {
 		ArrayList<ItemStack> leftoverItems = null;
 		
 		for (ItemStack itemStack : items) {
-			ItemStack leftoverItem = giveItem(inv, group, itemStack);
+			ItemStack leftoverItem = giveItem(inv, slots, itemStack);
 			
 			if (leftoverItem != null) {
 				if (leftoverItems == null) {
@@ -160,7 +158,7 @@ public class ItemGiver {
 	}
 	
 	@SuppressWarnings("ConstantConditions")
-	private static ItemStack giveItem(Inventory inv, SlotGroup group, ItemStack item) {
+	private static ItemStack giveItem(Inventory inv, SlotGroup slots, ItemStack item) {
 		if (ItemUtil.isEmptyItem(item)) {
 			return null;
 		}
@@ -169,7 +167,7 @@ public class ItemGiver {
 		int amountToGive = item.getAmount();
 		
 		// Prioritize slots with partial stacks
-		int[] partialStackSlots = group.getSlots(inv, ItemPredicates.onlyPartialStacks());
+		int[] partialStackSlots = slots.getSlots(inv, ItemPredicates.onlyPartialStacks());
 		
 		for (int slot : partialStackSlots) {
 			ItemStack slotItem = inv.getItem(slot);
@@ -189,7 +187,7 @@ public class ItemGiver {
 		}
 		
 		// All partial slots are full, fill empty slots instead
-		int[] emptySlots = group.getSlots(inv, ItemPredicates.onlyEmptyItems());
+		int[] emptySlots = slots.getSlots(inv, ItemPredicates.onlyEmptyItems());
 		
 		if (emptySlots.length > 0) {
 			if (amountToGive <= maxStackSize) {
