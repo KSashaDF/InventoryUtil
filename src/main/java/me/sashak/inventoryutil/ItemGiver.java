@@ -77,7 +77,7 @@ public class ItemGiver {
 				itemToSet = items[itemIndex];
 				itemIndex++;
 				
-				if (cloneItems) {
+				if (cloneItems && !ItemUtil.isEmptyItem(itemToSet)) {
 					itemToSet = itemToSet.clone();
 				}
 			} else {
