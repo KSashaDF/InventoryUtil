@@ -4,7 +4,7 @@ import me.sashak.inventoryutil.itempredicate.ItemPredicates;
 import me.sashak.inventoryutil.slotgroup.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import java.util.*;
 
@@ -93,7 +93,7 @@ public class ItemGiver {
 	/**
 	 * @see #giveItems(Inventory, SlotGroup, List)
 	 */
-	@Nullable
+	@NotNull
 	public static ArrayList<ItemStack> giveItems(InventoryHolder holder, SlotGroup slots, ItemStack... items) {
 		return giveItems(holder.getInventory(), slots, items);
 	}
@@ -101,18 +101,14 @@ public class ItemGiver {
 	/**
 	 * @see #giveItems(Inventory, SlotGroup, List)
 	 */
-	@Nullable
+	@NotNull
 	public static ArrayList<ItemStack> giveItems(Inventory inv, SlotGroup slots, ItemStack... items) {
-		ArrayList<ItemStack> leftoverItems = null;
+		ArrayList<ItemStack> leftoverItems = new ArrayList<>(0);
 		
-		for (ItemStack itemStack : items) {
-			ItemStack leftoverItem = giveItem(inv, slots, itemStack);
+		for (ItemStack item : items) {
+			ItemStack leftoverItem = giveItem(inv, slots, item);
 			
 			if (leftoverItem != null) {
-				if (leftoverItems == null) {
-					leftoverItems = new ArrayList<>();
-				}
-				
 				leftoverItems.add(leftoverItem);
 			}
 		}
@@ -123,7 +119,7 @@ public class ItemGiver {
 	/**
 	 * @see #giveItems(Inventory, SlotGroup, List)
 	 */
-	@Nullable
+	@NotNull
 	public static ArrayList<ItemStack> giveItems(InventoryHolder holder, SlotGroup slots, List<ItemStack> items) {
 		return giveItems(holder.getInventory(), slots, items);
 	}
@@ -133,23 +129,18 @@ public class ItemGiver {
 	 * stack sizes above their max stack sizes are acceptable and will be handled appropriately.
 	 * Any items that could not be given are returned.
 	 *
-	 * @return a list of items that could not be given because the inventory is full. Null if all
-	 * items were successfully given. If the inputted item list is compacted with no respect to
-	 * max stack size, then so will be outputted list of leftover items. Otherwise, no guarantees
-	 * are given to compactness
+	 * @return a list of items that could not be given because the inventory is full. If the
+	 * inputted item list is compacted with no respect to max stack size, then so will be outputted
+	 * list of leftover items. Otherwise, no guarantees are given to compactness
 	 */
-	@Nullable
+	@NotNull
 	public static ArrayList<ItemStack> giveItems(Inventory inv, SlotGroup slots, List<ItemStack> items) {
-		ArrayList<ItemStack> leftoverItems = null;
+		ArrayList<ItemStack> leftoverItems = new ArrayList<>(0);
 		
-		for (ItemStack itemStack : items) {
-			ItemStack leftoverItem = giveItem(inv, slots, itemStack);
+		for (ItemStack item : items) {
+			ItemStack leftoverItem = giveItem(inv, slots, item);
 			
 			if (leftoverItem != null) {
-				if (leftoverItems == null) {
-					leftoverItems = new ArrayList<>();
-				}
-				
 				leftoverItems.add(leftoverItem);
 			}
 		}
@@ -198,11 +189,11 @@ public class ItemGiver {
 				return null;
 			} else {
 				for (int emptySlot : emptySlots) {
-					int amount = Math.min(maxStackSize, amountToGive);
-					amountToGive -= amount;
+					int amountToSet = Math.min(maxStackSize, amountToGive);
+					amountToGive -= amountToSet;
 					
 					ItemStack slotItem = item.clone();
-					slotItem.setAmount(amount);
+					slotItem.setAmount(amountToSet);
 					inv.setItem(emptySlot, slotItem);
 					
 					if (amountToGive == 0) {
